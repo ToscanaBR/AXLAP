@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+    ARG ARKIME_VERSION=4.2.0 # Specify Arkime version
+    ENV DEBIAN_FRONTEND=noninteractive
+
+    RUN apt-get update && apt-get install -y --no-install-recommends \
+        wget \
+        ca-certificates \
+        # Arkime Viewer dependencies
+        nodejs \
+        npm \
+        # Other Arkime runtime deps if any
+        libpcap0.8 \
+        libmaxminddb0 \
+        libyaml-0-2 \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Download and install Arkime DEB
+    # The URL might change based on version and OS. This is an example.
+    RUN wget https://s3.amazonaws.com/files.molo.ch/builds/ubuntu-22.04/arkime_${ARKIME_VERSION}-1_amd64.deb -O /tmp/arkime.deb \
+        && apt-get update \
+        && apt-get install -y /tmp/arkime.deb \
+        && rm /tmp/arkime.deb
+
+    # Arkime's viewer component needs its node modules.
+    # The .deb package *should* handle this. If not, these steps would be needed:
+    # WORKDIR /opt/arkime/viewer
+    # RUN if [ -f "package-lock.json" ]; then npm ci; else npm install; fi
+
+    # Ensure config directory exists (config.ini will be volume-mounted)
+    RUN mkdir -p /opt/arkime/etc
+    RUN mkdir -p /data/pcap # PCAP directory
+
+    WORKDIR /opt/arkime/bin
+    # Default command for viewer
+    EXPOSE 8005
+    CMD ["/opt/arkime/bin/node", "/opt/arkime/viewer/viewer.js", "-c", "/opt/arkime/etc/config.ini", "--host", "0.0.0.0"]

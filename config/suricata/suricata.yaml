@@ -1,0 +1,146 @@
+# In axlap/config/suricata/suricata.yaml (relevant part)
+# ... (other Suricata config) ...
+
+# External networks - set by install script to 'any' or specific ranges
+EXTERNAL_NET: "any"
+
+# Internal networks - set by install script
+HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12,172.28.0.0/16]" # Example, will be dynamic
+
+# Path to rules
+default-rule-path: /etc/suricata/rules/
+rule-files:
+  - suricata.rules # This is usually the combined rules file from suricata-update
+  - local.rules    # For AXLAP custom rules
+
+# Output configuration
+outputs:
+  # EVE JSON log based output
+  - eve-log:
+      enabled: yes
+      filetype: regular # regular|syslog|unix_dgram|unix_stream|redis
+      filename: eve.json # Output to /var/log/suricata/eve.json
+      # Buffering
+      # buffer-size: 64kb # commented out to use default
+      # flush-interval: 1s # new setting in 6.0.7+, default 1s
+      # rotate-interval: day # new in 6.0.5+, rotate daily. Set to 'file' to disable time based rotation.
+      # archive: true # new in 6.0.11+, archive rotated files
+      # archive-max-files: 5 # new in 6.0.11+, max archived files
+      #xff:
+      #  enabled: yes
+      #  mode: extra-data # Differentiate between real client ip and proxies
+      #  deployment: reverse
+      #  header: X-Forwarded-For
+      # Payload printing
+      #payload-printable: yes
+      # Packet printing
+      #packet-printable: yes
+      # http header logging
+      #http-log-headers:
+      #  # Log specific headers. Case insensitive.
+      #  # "Authorization": any # Log 'Authorization' header if it is part of the HTTP request.
+      #  # "Cookie": request # Log 'Cookie' header for HTTP requests only.
+      #  # "Set-Cookie": response # Log 'Set-Cookie' header for HTTP responses only.
+      types:
+        - alert:
+            # payload: yes             # Output payload with alert. Default: no
+            # payload-buffer-size: 4kb # Output payload buffer size. Default: 4kb
+            # payload-printable: yes   # Output payload in printable format. Default: yes
+            # packet: yes              # Output packet with alert. Default: no
+            # http-body: yes           # Output HTTP body with alert. Default: no
+            # http-body-printable: yes # Output HTTP body in printable format. Default: yes
+            # http-header: yes         # Output HTTP header with alert. Default: no
+            # tagged-packets: yes      # Output tagged packets for alerts. Default: no
+            # metadata: yes            # Output alert metadata. Default: yes (since 6.0.0)
+            # rule-vars: yes           # Output rule vars. Default: yes (since 6.0.4)
+        - http:
+            extended: yes     # To include all HTTP request and response fields
+            # custom: [Accept-Language, Accept-Encoding] # Enable specific fields
+        - dns:
+            # query: yes
+            # answer: yes
+            # version: 2 # Enable version 2 for more detailed information
+        - tls:
+            extended: yes     # To include all TLS logging fields
+        - files:
+            force-magic: no   # Force logging of magic for all stored files
+            force-md5: no     # Force logging of MD5 for all stored files
+            # custom: [custom field1, custom field2] # Enable specific fields
+        - drop: {}
+        - flow: {}
+        - netflow: {} # Requires netflow app-layer
+        - ssh: {}
+        - smtp: {}
+        # - stats:
+        #     totals: yes       # stats for all threads merged together
+        #     threads: no       # per thread stats
+        #     deltas: no        # deltas for counters
+        # - dnp3: {}
+        # - nfs: {}
+        # - smb: {}
+        # - tftp: {}
+        # - rdp: {}
+        # - krb5: {}
+        # - ikev2: {}
+        # - dhcp: {}
+        # - rfb: {}
+        # - snmp: {}
+        # - mqtt: {}
+        # - http2: {}
+        # - geneve: {}
+        # - quic: {}
+
+# AF_PACKET settings for capture interface (example for eth0)
+af-packet:
+  - interface: ${SURICATA_INTERFACE_FROM_ENV:-eth0} # Will be replaced by install.sh or Docker env
+    # Number of receive threads. If you run a 16 core machine
+    # 2 threads for flow, 16-2-X for workers seems a good start.
+    # threads: auto means number of cores.
+    # threads: 1
+    # Default cluster_id is 0. If you run multiple Suricata instances on the same interface,
+    # you must give each a unique cluster_id.
+    cluster-id: 99
+    cluster-type: cluster_flow # Default. Other options: cluster_cpu, cluster_qm
+    # When using RSS (Receive Side Scaling), some cards need specific settings.
+    # For example, some Intel cards need "defrag: no"
+    defrag: yes
+    # buffer-size: 32768 # Default is kernel default
+    # Ring size. Default value is 131072. Value is number of packets.
+    # Ring size must be a power of 2.
+    # ring-size: 262144
+    use-mmap: yes # Use mmaped capture. Mutually exclusive with copy-mode.
+    # BPF filter to apply to this interface.
+    # bpf-filter: not (host 1.2.3.4 and port 80)
+    # promiscuous: yes # Default yes
+    # checksum-validation: yes # Default yes, set to no for some NICs/drivers
+
+# Engine settings
+# detect-engine:
+#   - rule-reload: true # Auto reload rules on SIGHUP
+
+# Host OS specific settings.
+# Linux
+# On Linux, to run Suricata on a specific CPU set, use "taskset -c <cpu-list>".
+# Example: taskset -c 0,1,2,3 suricata -c /etc/suricata/suricata.yaml --af-packet
+# Or use the cpu_affinity settings below.
+
+cpu-affinity:
+  # Management thread(s). Default: no affinity.
+  # management-cpu-set:
+  #   cpu: [ "0" ]  # Use only CPU 0.
+  # Receive thread(s). Default: no affinity.
+  # receive-cpu-set:
+  #   cpu: [ "0" ]  # Use only CPU 0.
+  # Worker thread(s). Default: no affinity.
+  # worker-cpu-set:
+  #   cpu: [ "all" ] # Use all CPUs.
+  #   mode: "exclusive" # "exclusive" or "shared". In "exclusive" mode, each worker will be pinned to a CPU.
+  #                     # If the number of CPUs is less than number of workers, the pinning will wrap around.
+  #   prio:
+  #     default: "medium" # Default "low", "medium", "high", "max" or numerical value.
+  # verdict-cpu-set:
+  #   cpu: ["1"]
+  #   prio:
+  #     default: "high" # Default "low", "medium", "high", "max" or numerical value.
+  #   mode: "exclusive" # "exclusive" or "shared". In "exclusive" mode, each worker will be pinned to a CPU.
+  #   # If the number of CPUs is less than number of workers, the pinning will wrap around.

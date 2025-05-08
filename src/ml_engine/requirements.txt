@@ -1,0 +1,6 @@
+pandas
+scikit-learn
+elasticsearch>=7.0.0,<8.0.0 # For connecting to ES to fetch data / write alerts
+numpy
+joblib # For saving/loading scikit-learn models
+python-dotenv # If using .env for config

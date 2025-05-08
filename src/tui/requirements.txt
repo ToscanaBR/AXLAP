@@ -1,0 +1,6 @@
+
+requests # For API calls to Arkime, OpenCTI
+elasticsearch>=7.0.0,<8.0.0 # For ES queries
+python-dotenv # For config
+PyYAML # For plugin config parsing
+

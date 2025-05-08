@@ -1,0 +1,92 @@
+# axlap/config/filebeat/filebeat.yml
+filebeat.inputs:
+- type: log # Changed from 'docker' or 'container' to 'log' for specific file paths
+  enabled: true
+  paths:
+    - /var/log/zeek_json/*.log # Zeek JSON logs (conn.log, http.log, etc.)
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message # If Zeek logs are pure JSON objects per line
+  tags: ["zeek"]
+  processors:
+    - add_fields:
+        target: event
+        fields:
+          kind: "zeek_log" # To help differentiate in Elasticsearch
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/suricata/eve.json # Suricata EVE JSON logs
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message # EVE JSON is one JSON object per line
+  tags: ["suricata"]
+  processors:
+    - add_fields:
+        target: event
+        fields:
+          kind: "suricata_alert" # To help differentiate
+    - if:
+        contains:
+          json.event_type: "alert"
+      then:
+        - rename:
+            fields:
+              - from: "json.alert.signature"
+                to: "rule_name"
+              - from: "json.alert.severity"
+                to: "severity"
+    # Add more processing for Suricata fields if needed
+
+# General Filebeat settings
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# Output to Elasticsearch
+output.elasticsearch:
+  hosts: ["axlap-elasticsearch:9200"]
+  protocol: "http"
+  # index: "filebeat-%{[agent.version]}-%{+yyyy.MM.dd}" # Default index pattern
+  # Custom index based on tags or fields:
+  indices:
+    - index: "axlap-zeek-%{+yyyy.MM.dd}"
+      when.contains:
+        tags: "zeek"
+    - index: "axlap-suricata-%{+yyyy.MM.dd}"
+      when.contains:
+        tags: "suricata"
+  # template.name: "axlap-filebeat"
+  # template.pattern: "axlap-*"
+  # template.overwrite: true # If you have a custom template
+  # setup.template.settings:
+  #   index.number_of_shards: 1 # For single node ES cluster
+  #   index.codec: best_compression # For saving space
+
+# Logging
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /usr/share/filebeat/logs
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# ... (in filebeat.yml)
+# - type: log
+#   enabled: true
+#   paths:
+#     - /var/log/zeek_json/axlap_http_detailed.log
+#   json.keys_under_root: true
+#   json.add_error_key: true
+#   tags: ["zeek", "axlap_http_detailed"]
+#   # ... processors ...
+# - type: log
+#   enabled: true
+#   paths:
+#     - /var/log/zeek_json/axlap_conn_stats.log
+#   json.keys_under_root: true
+#   json.add_error_key: true
+#   tags: ["zeek", "axlap_conn_stats"]
+#   # ... processors ...
