@@ -1,6 +1,8 @@
 
 # AXLAP - Autonomous XKeyscore-Like Analysis Platform
 
+![AXLAP](https://github.com/user-attachments/assets/7058ab71-c115-4629-8a8b-5912af30dc40)
+
 AXLAP is a self-contained Linux-native application designed to replicate XKeyscore-class surveillance capabilities using open-source tools. It provides a unified interface for full session capture, metadata analysis, protocol fingerprinting, real-time behavioral flagging, and threat intelligence correlation.
 
 **Mission Objective:** Build a single self-contained Linux-native application that replicates seven XKeyscore-class surveillance capabilities using only open-source tools.
