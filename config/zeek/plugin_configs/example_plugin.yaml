@@ -1,9 +1,9 @@
-    # axlap/config/zeek/plugin_configs/example_plugin.yaml
-    plugin_name: AXLAP_HTTP_Detailed.zeek
-    enabled: true
-    description: "Logs extended HTTP details including all headers."
-    settings:
-      log_all_headers: true
-      max_header_length: 4096
-    # These settings would be read by the TUI and could be used to modify
-    # `local.zeek` or a dedicated plugin loader script in Zeek.
+# axlap/config/zeek/plugin_configs/example_plugin.yaml
+plugin_name: AXLAP_HTTP_Detailed.zeek
+enabled: true
+description: "Logs extended HTTP details including all headers."
+settings:
+  log_all_headers: true
+  max_header_length: 4096
+# These settings would be read by the TUI and could be used to modify
+# `local.zeek` or a dedicated plugin loader script in Zeek.

@@ -13,7 +13,7 @@ network.host: 0.0.0.0 # Binds to all interfaces within the container
 http.port: 9200
 
 # X-Pack security (disabled in docker-compose for simplicity, enable for production)
-# xpack.security.enabled: false
+xpack.security.enabled: false
 # xpack.security.transport.ssl.enabled: false
 # xpack.security.http.ssl.enabled: false
 
