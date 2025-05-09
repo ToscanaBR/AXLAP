@@ -119,6 +119,10 @@ main() {
         lsb-release \
         libpcap-dev \
         libcurl4-openssl-dev \
+        rsync \
+        yq \
+        net-tools \
+        htop \
         >> "${LOG_FILE}" 2>&1
 
     # Check if Docker daemon is running
@@ -334,7 +338,7 @@ main() {
     # For now, assume the user might need to run this manually if it fails or use a helper script.
     # A simple init command (often works for non-interactive):
     log "Attempting to initialize Arkime database..."
-    if docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewerടെസ്റ്റ് -e /opt/arkime/db/db.pl; then
+    if docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer -e /opt/arkime/db/db.pl; then
         echo "INIT" | docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer /opt/arkime/db/db.pl http://axlap-elasticsearch:9200 init >> "${LOG_FILE}" 2>&1
         log "Arkime database initialization command sent."
         # Add an admin user for Arkime

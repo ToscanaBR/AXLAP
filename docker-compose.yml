@@ -69,7 +69,7 @@ services:
       - ./data/arkime_pcap:/data/pcap # Directory for Zeek to write PCAPs for Arkime (if Zeek manages this)
       # - /sys/fs/bpf:/sys/fs/bpf # For eBPF/AF_XDP if used
     environment:
-      - ZEEK_INTERFACE=eth0 # This will be configured by install.sh
+      - ZEEK_INTERFACE=${ZEEK_INTERFACE_FROM_ENV:-eth0} # This will be configured by install.sh
       - ZEEK_LOG_JSON=1 # Enable JSON logging by default
     command: /bin/bash -c "echo 'Starting Zeek... configuring interface and launching.' && /usr/local/zeek/bin/zeekctl deploy && tail -f /usr/local/zeek/spool/manager/current.log"
     # A more robust entrypoint script would handle zeekctl start/deploy and keep container alive
@@ -96,7 +96,7 @@ services:
       - ./data/suricata_logs:/var/log/suricata # EVE JSON logs and other Suricata logs
       - ./logs:/var/log/axlap_suricata_init # For init script logs
     environment:
-      - SURICATA_INTERFACE=eth0 # Configured by install.sh
+      - SURICATA_INTERFACE=${SURICATA_INTERFACE_FROM_ENV:-eth0} # Configured by install.sh
     # Command will be in Dockerfile entrypoint to handle rule updates and suricata execution
     restart: unless-stopped
 
@@ -135,7 +135,7 @@ services:
       - ./data/arkime_pcap:/data/pcap # Where PCAPs are stored/written
     environment:
       - ARKIME_ELASTICSEARCH=http://axlap-elasticsearch:9200
-      - CAPTURE_INTERFACE=eth0 # Configured by install.sh; only if Arkime captures directly
+      - CAPTURE_INTERFACE=${CAPTURE_INTERFACE_FROM_ENV:-eth0} # Configured by install.sh; only if Arkime captures directly
     # Command depends on whether it captures live or watches a dir.
     # For this setup, Arkime will primarily be a PCAP *viewer* of Zeek-generated PCAPs,
     # or Zeek can call Arkime's offline pcap ingestion.
