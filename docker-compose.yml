@@ -22,10 +22,7 @@ services:
       - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       # - ./config/elasticsearch/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties # Optional custom logging
     ports:
-      - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300"
-    networks:
-      - axlap_net
+      - "127.0.0.1:9200:9200" # Keep port mapping for access from host
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s --fail http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
