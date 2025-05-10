@@ -27,7 +27,7 @@ filebeat.inputs:
         target: event
         fields:
           kind: "suricata_alert" # To help differentiate
-    - if:
+    - if:  # Extract rule name and severity for easier querying
         contains:
           json.event_type: "alert"
       then:
@@ -38,6 +38,16 @@ filebeat.inputs:
               - from: "json.alert.severity"
                 to: "severity"
     # Add more processing for Suricata fields if needed
+
+- type: log # For AXLAP custom Zeek logs
+  enabled: true
+  paths:
+    - /var/log/zeek_json/axlap_*.log # Match custom logs like axlap_http_detailed.log
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message
+  tags: ["zeek", "axlap_custom"] # Tag for custom logs
+  # Add processors if needed, e.g., to extract specific fields
 
 # General Filebeat settings
 filebeat.config.modules:

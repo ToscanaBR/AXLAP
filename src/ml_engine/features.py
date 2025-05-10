@@ -11,16 +11,15 @@ def preprocess_conn_log_entry(entry):
         features['resp_bytes'] = int(source.get('resp_bytes', 0) or 0)
         features['orig_pkts'] = int(source.get('orig_pkts', 0) or 0)
         features['resp_pkts'] = int(source.get('resp_pkts', 0) or 0)
-        
-        # Service: one-hot encode common services, or use frequency encoding
-        # For simplicity, treat unknown services as a category or ignore for now
-        # services = ['http', 'dns', 'ssh', 'smtp', 'ftp'] # Example common
-        # for s in services:
-        #     features[f'service_{s}'] = 1 if source.get('service') == s else 0
-        # Or, just use categorical encoding if model supports it, or skip for pure numerical model first.
-        
+
         # Protocol: (tcp, udp, icmp)
         features['proto_tcp'] = 1 if source.get('proto') == 'tcp' else 0
+        # Consider using get with a default value for robustness
+        # Example: features['proto_tcp'] = 1 if source.get('proto', '') == 'tcp' else 0
+        # This handles cases where 'proto' might be missing from the entry
+        # The same applies to 'service' if you decide to include it later.
+
+        # Protocol: (tcp, udp, icmp)
         features['proto_udp'] = 1 if source.get('proto') == 'udp' else 0
         features['proto_icmp'] = 1 if source.get('proto') == 'icmp' else 0
 
@@ -45,7 +44,7 @@ def preprocess_conn_log_entry(entry):
         if features['total_bytes'] > 0:
             features['byte_ratio_orig_to_total'] = features['orig_bytes'] / features['total_bytes']
         else:
-            features['byte_ratio_orig_to_total'] = 0.5 # Neutral if no bytes
+            features['byte_ratio_orig_to_total'] = 0.5  # Neutral if no bytes
 
         return features
 
@@ -53,14 +52,15 @@ def create_feature_df(conn_log_entries):
         """Creates a Pandas DataFrame of features from a list of conn.log entries."""
         processed_entries = [preprocess_conn_log_entry(entry) for entry in conn_log_entries]
         df = pd.DataFrame(processed_entries)
-        
+
         # Ensure all expected columns exist, fill NaNs (e.g., if a service was never seen)
         # This depends on the full feature set defined. For now, numericals are handled.
         df.fillna(0, inplace=True) # Fill any NaNs with 0
         return df
 
-    # Define the list of feature names the model will expect (order matters for some models)
-    # This should match the output of preprocess_conn_log_entry keys
+
+# Define the list of feature names the model will expect (order matters for some models)
+# This should match the output of preprocess_conn_log_entry keys
 NUMERICAL_FEATURES = [
         'duration', 'orig_bytes', 'resp_bytes', 'orig_pkts', 'resp_pkts',
         'proto_tcp', 'proto_udp', 'proto_icmp',
@@ -75,5 +75,5 @@ def get_features_for_prediction(df):
         # Ensure all FEATURE_COLUMNS are present, adding them with 0 if missing
         for col in FEATURE_COLUMNS:
             if col not in df.columns:
-                df[col] = 0
+                df[col] = 0  # Use a consistent style for comments
         return df[FEATURE_COLUMNS]

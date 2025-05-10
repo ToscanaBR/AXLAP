@@ -13,7 +13,7 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "models/isolation_forest_co
 SCALER_PATH = os.path.join(os.path.dirname(__file__), "models/scaler_conn.joblib")
 PREDICTION_WINDOW_MINUTES = int(os.getenv("ML_PREDICTION_WINDOW_MINUTES", 15)) # Process last 15 mins of data
 ALERT_INDEX_NAME = "axlap-ml-alerts" # Elasticsearch index for ML alerts
-MAX_PREDICTION_SAMPLES = int(os.getenv("ML_MAX_PREDICTION_SAMPLES", 10000))
+MAX_PREDICTION_SAMPLES = int(os.getenv("ML_MAX_PREDICTION_SAMPLES", 10000)) # Maximum number of samples to process
 
 def load_model_and_scaler():
         if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
@@ -25,7 +25,7 @@ def load_model_and_scaler():
 
 def fetch_recent_data(es_client, minutes_ago=15, max_samples=10000):
         print(f"Fetching recent Zeek conn.log data (last {minutes_ago} minutes)...")
-        end_date = datetime.utcnow()
+        end_date = datetime.utcnow() # Use UTC time for consistency
         start_date = end_date - timedelta(minutes=minutes_ago)
         
         query = {
@@ -35,7 +35,7 @@ def fetch_recent_data(es_client, minutes_ago=15, max_samples=10000):
                         {"match": {"event.kind": "zeek_log"}},
                         {"exists": {"field": "uid"}}
                     ],
-                    "filter": [
+                    "filter": 
                         {
                             "range": {
                                 "@timestamp": {
@@ -44,10 +44,6 @@ def fetch_recent_data(es_client, minutes_ago=15, max_samples=10000):
                                 }
                             }
                         }
-                    ],
-                    # Avoid re-processing already alerted items if we add a tag
-                    # "must_not": [
-                    #    {"exists": {"field": "axlap_ml_alerted"}}
                     # ]
                 }
             },
@@ -68,7 +64,7 @@ def post_alerts_to_es(es_client, alerts):
         if not alerts:
             return
         
-        # Create index template for alerts if it doesn't exist
+        # Create or update index template for alerts
         template_name = "axlap_ml_alerts_template"
         template_body = {
             "index_patterns": [f"{ALERT_INDEX_NAME}-*"],
@@ -81,10 +77,11 @@ def post_alerts_to_es(es_client, alerts):
                     "original_event": {"type": "object", "enabled": False}, # Store original event as object, not indexed deeply
                     "src_ip": {"type": "ip"},
                     "dst_ip": {"type": "ip"},
-                    "dst_port": {"type": "integer"},
-                    # ... other relevant fields
+                    "dst_port": {"type": "integer"}
                 }
-            }
+            },
+            "settings": {"number_of_shards": 1, "number_of_replicas": 0} # Example settings
+
         }
         if not es_client.indices.exists_template(name=template_name):
             try:
@@ -92,18 +89,18 @@ def post_alerts_to_es(es_client, alerts):
                 print(f"Created Elasticsearch template: {template_name}")
             except Exception as e:
                 print(f"Error creating template {template_name}: {e}")
-
+        else:
+            try:
+                es_client.indices.put_template(name=template_name, body=template_body)
+                print(f"Updated Elasticsearch template: {template_name}")
+            except Exception as e:
+                print(f"Error updating template {template_name}: {e}")
 
         actions = []
         current_date_str = datetime.utcnow().strftime("%Y.%m.%d")
         index_name_with_date = f"{ALERT_INDEX_NAME}-{current_date_str}"
-
         for alert in alerts:
-            action = {
-                "_index": index_name_with_date,
-                "_source": alert
-            }
-            actions.append(action)
+            actions.append({"_index": index_name_with_date, "_source": alert})
         
         try:
             helpers.bulk(es_client, actions)
@@ -113,7 +110,7 @@ def post_alerts_to_es(es_client, alerts):
 
 
 def main():
-        print("Starting ML Prediction Process...")
+        print("Starting ML Prediction Process...") # Log start of the process
         model, scaler = load_model_and_scaler()
         if not model or not scaler:
             return
@@ -121,7 +118,7 @@ def main():
         try:
             es = Elasticsearch([{'host': ES_HOST, 'port': ES_PORT, 'scheme': 'http'}])
             if not es.ping():
-                raise ConnectionError("Failed to connect to Elasticsearch")
+                raise ConnectionError("Failed to connect to Elasticsearch.")
         except Exception as e:
             print(f"Elasticsearch connection error: {e}")
             return
@@ -137,7 +134,7 @@ def main():
         if df.empty:
             print("DataFrame is empty after preprocessing. Aborting prediction.")
             return
-            
+
         X = get_features_for_prediction(df.copy())
 
         # 2. Scale features
@@ -155,7 +152,7 @@ def main():
                 original_event_full = raw_docs[i] # Contains _id, _index etc.
 
                 alert = {
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.utcnow().isoformat(), # Use UTC time for alert timestamp
                     "alert_type": "ConnectionAnomaly",
                     "anomaly_score": float(anomaly_scores[i]),
                     "description": f"Anomalous network connection detected for UID: {original_event_source.get('uid', 'N/A')}",
@@ -170,19 +167,17 @@ def main():
                     "duration": original_event_source.get('duration'),
                     "orig_bytes": original_event_source.get('orig_bytes'),
                     "resp_bytes": original_event_source.get('resp_bytes'),
-                    "original_event_details": original_event_source # Store a copy of the original fields
-                    # Consider adding original_event_es_id: original_event_full.get('_id') for linkage
+                    "original_event_details": original_event_source, # Store a copy of the original fields
+                    "original_event_es_id": original_event_full.get('_id') # Add ES ID for linkage
                 }
                 alerts_to_post.append(alert)
         
         if alerts_to_post:
             post_alerts_to_es(es, alerts_to_post)
         else:
-            print("No anomalies detected in the current window.")
-            
-        print("ML Prediction Process Finished.")
+            print("No anomalies detected in the current window.") # Indicate no anomalies
+        print("ML Prediction Process Finished.") # Log end of the process
 
 if __name__ == "__main__":
-        # This script would be run by cron or a systemd timer
-        # Example: */15 * * * * /opt/axlap/venv/bin/python /opt/axlap/src/ml_engine/predict.py
-        main()
+    # This script would be run by cron or a systemd timer
+    main()

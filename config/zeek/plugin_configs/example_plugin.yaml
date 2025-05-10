@@ -4,6 +4,6 @@ enabled: true
 description: "Logs extended HTTP details including all headers."
 settings:
   log_all_headers: true
-  max_header_length: 4096
+  max_header_length: 8192 # Increased max header length
 # These settings would be read by the TUI and could be used to modify
 # `local.zeek` or a dedicated plugin loader script in Zeek.

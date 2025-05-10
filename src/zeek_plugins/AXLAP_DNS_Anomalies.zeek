@@ -69,7 +69,7 @@
                         $msg=fmt("Client %s exceeded NXDOMAIN threshold (%d/%s)",
                                  client_ip, nxdomains_count[client_ip], nxdomain_window),
                         $src=client_ip,
-                        $sub=query, # Query not directly available here, need to grab from conn
+                        #$sub=query, # Query not directly available here, need to grab from conn or earlier event
                         $conn=c]);
                 # Reset or adjust count to avoid continuous notices for same burst
                 # Or use Notice framework's suppression features

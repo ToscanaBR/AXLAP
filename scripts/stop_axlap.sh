@@ -8,8 +8,6 @@
     cd "${AXLAP_BASE_DIR}"
     docker-compose -f "${DOCKER_COMPOSE_FILE}" down -v --remove-orphans # -v to remove volumes if desired (careful!)
                                                                   # For normal stop, just 'down'
-                                                                  # Let's use `down` without `-v` for default stop to preserve data.
-    docker-compose -f "${DOCKER_COMPOSE_FILE}" down
 
     if [ $? -eq 0 ]; then
       echo "AXLAP services stopped."

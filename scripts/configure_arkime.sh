@@ -1,5 +1,5 @@
-  #!/bin/bash
-    # Arkime Configuration Helper (Example)
+#!/bin/bash
+# Arkime Configuration Helper (Example)
 
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
     source "${SCRIPT_DIR}/axlap_common_env.sh"
@@ -22,4 +22,4 @@
     #   echo "Failed to add Arkime user ${arkime_user}." | tee -a "${LOG_FILE}"
     # fi
 
-    echo "[$(date)] Arkime configuration script finished." | tee -a "${LOG_FILE}"
+echo "[$(date)] Arkime configuration script finished." | tee -a "${LOG_FILE}"

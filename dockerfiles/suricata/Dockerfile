@@ -69,7 +69,7 @@ cp /etc/suricata/suricata.yaml /tmp/suricata.yaml
 # The HOME_NET variable in suricata.yaml might be complex.
 # This simple sed might not work if it's multi-line or heavily commented.
 # A better approach is to have a template suricata.yaml and fill it.
-# Or use Suricata's variable override mechanisms if available.
+# Or use Suricata's variable override mechanisms if available (e.g., environment variables).
 # For now:
 ESCAPED_HOME_NET=$(echo "${HOME_NET_CONFIG}" | sed 's/[&/\]/\\&/g')
 sed -i "s|^ *HOME_NET:.*|HOME_NET: \"${ESCAPED_HOME_NET}\"|" /tmp/suricata.yaml
@@ -90,13 +90,10 @@ fi
 # Update Suricata rules
 echo "Updating Suricata rules with suricata-update..."
 suricata-update --suricata-conf /tmp/suricata.yaml \
-    --no-emerging-threats \
-    --no-sid-msg-map \
-    --rules-dir /var/lib/suricata/rules \
-    --disable-conf /etc/suricata/disable.conf \
-    --enable-conf /etc/suricata/enable.conf \
-    --drop-conf /etc/suricata/drop.conf \
-    --modify-conf /etc/suricata/modify.conf \
+    --no-enable-conf /etc/suricata/enable.conf \
+    --no-disable-conf /etc/suricata/disable.conf \
+    --no-modify-conf /etc/suricata/modify.conf \
+    --no-drop-conf /etc/suricata/drop.conf \
     || echo "suricata-update failed, continuing with existing rules if any."
 
 # Symlink the main rules file if suricata-update puts it in /var/lib/suricata/rules

@@ -330,7 +330,7 @@ main() {
     # The db.pl script runs inside the viewer container.
     # We need to run it after ES is up.
     # docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer /opt/arkime/db/db.pl http://axlap-elasticsearch:9200 initnoprompt >> "${LOG_FILE}" 2>&1
-    # The "initnoprompt" might not exist. "init" is interactive.
+    # The "initnoprompt" option is deprecated. "init" is interactive by default.
     # Arkime's official Docker image might auto-initialize. If not, this is how:
     # As of Arkime 3.x, you might need to use init instead of initnoprompt, requires interaction or expect script
     # For non-interactive: echo "INIT" | docker-compose exec -T arkime-viewer /opt/arkime/db/db.pl http://axlap-elasticsearch:9200 init
@@ -338,7 +338,7 @@ main() {
     # For now, assume the user might need to run this manually if it fails or use a helper script.
     # A simple init command (often works for non-interactive):
     log "Attempting to initialize Arkime database..."
-    if docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer -e /opt/arkime/db/db.pl; then
+    if docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer test -f /opt/arkime/db/db.pl; then
         echo "INIT" | docker-compose -f "${DOCKER_COMPOSE_FILE}" exec -T arkime-viewer /opt/arkime/db/db.pl http://axlap-elasticsearch:9200 init >> "${LOG_FILE}" 2>&1
         log "Arkime database initialization command sent."
         # Add an admin user for Arkime
@@ -539,6 +539,6 @@ EOF
 }
 
 # --- Script Execution ---
-main "$@"
+main "$@" || exit 1
 
 exit 0

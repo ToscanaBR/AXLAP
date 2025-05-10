@@ -63,7 +63,7 @@
         info$orig_bytes_per_sec = c$orig?$size / dur_sec : 0.0;
         info$resp_bytes_per_sec = c$resp?$size / dur_sec : 0.0;
         info$orig_pkts_per_sec = c$orig?$num_pkts / dur_sec : 0.0;
-        resp_pkts_per_sec = c$resp?$num_pkts / dur_sec : 0.0; # Corrected variable name
+        info$resp_pkts_per_sec = c$resp?$num_pkts / dur_sec : 0.0; # Corrected variable name
 
         local total_bytes = (c$orig?$size : 0) + (c$resp?$size : 0);
         if ( total_bytes > 0 )

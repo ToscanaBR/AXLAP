@@ -50,12 +50,16 @@ class DashboardView(BaseView):
                     # count_res = self.es_client.count(f"axlap-zeek-{log_type}-*", {"query":{"match_all":{}}})
                     # More general: count all in axlap-zeek-*
                     if log_type == "conn": # just as example
-                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"uid"}}}) # conn logs have uid
-                        data["log_counts"][log_type] = count_res.get('count', 0)
-                    else: # Placeholder for other log types
-                        data["log_counts"][log_type] = "N/A (implement specific count)"
-
-
+                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"uid"}}}, index_pattern="axlap-zeek-*") # conn logs have uid
+                    elif log_type == "http":
+                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"host"}}}, index_pattern="axlap-zeek-*") # http logs have host
+                    elif log_type == "dns":
+                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"query"}}}, index_pattern="axlap-zeek-*") # dns logs have query
+                    elif log_type == "axlap_http_detailed":
+                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"resp_mime_types"}}}, index_pattern="axlap-zeek-*") # custom logs
+                    elif log_type == "axlap_conn_stats":
+                        count_res = self.es_client.count("axlap-zeek-*", {"query":{"exists":{"field":"conn_state_summary"}}}, index_pattern="axlap-zeek-*") # custom logs
+                    data["log_counts"][log_type] = count_res.get('count', 0)
             except Exception as e:
                 data["error"] = str(e)
             

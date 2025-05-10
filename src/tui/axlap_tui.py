@@ -8,14 +8,14 @@ from configparser import ConfigParser
 from views.dashboard_view import DashboardView
 from views.query_view import QueryView 
 from views.session_view import SessionView
-#from views.protocol_view import ProtocolView # Placeholder for future use
-#from views.plugin_view import PluginView # Placeholder for future use
-#from views.graph_view import GraphView # Placeholder for future use
+from views.protocol_view import ProtocolView 
+from views.plugin_view import PluginView 
+#from views.graph_view import GraphView 
 
-    # Import services
-from services.elasticsearch_client import AXLAPElasticsearchClient
-from services.arkime_client import ArkimeClient
-#from services.opencti_client import OpenCTIClient
+# Import services
+from services.elasticsearch_client import AXLAPElasticsearchClient as ElasticsearchClient
+from services.arkime_client import ArkimeClient as ArkimeClient
+from services.opencti_client import OpenCTIClient
 
 
 class AXLAPTUI:
@@ -42,11 +42,11 @@ class AXLAPTUI:
 
             self.views = {
                 "dashboard": DashboardView(stdscr, self.config, self.es_client),
-                "query": QueryView(stdscr, self.config, self.es_client),
+                "query": QueryView(stdscr, self.config, self.arkime_client, self.es_client), # Pass arkime_client
                 "sessions": SessionView(stdscr, self.config, self.arkime_client),
-                # "protocols": ProtocolView(stdscr, self.config, self.es_client),
-                #"plugins": PluginView(stdscr, self.config),
-                #"graph": GraphView(stdscr, self.config, self.opencti_client),
+                "protocols": ProtocolView(stdscr, self.config, self.es_client),
+                "plugins": PluginView(stdscr, self.config), # No client needed for basic plugin view
+                # "graph": GraphView(stdscr, self.config, self.opencti_client),
             }
             self.current_view_name = self.config.get('general', 'default_view', fallback='dashboard')
             self.current_view = self.views[self.current_view_name]

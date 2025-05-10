@@ -25,3 +25,13 @@ xpack.security.enabled: false
 # http.cors.enabled: true
 # http.cors.allow-origin: "*" # Restrict this in production
 # http.cors.allow-headers: "X-Requested-With,Content-Type,Content-Length,Authorization"
+
+# Enable detailed circuit breaker logging for troubleshooting
+# logger.org.elasticsearch.indices.breaker: TRACE
+
+# Enable slow query logging (adjust thresholds as needed)
+# index.search.slowlog.threshold.query.warn: 10s
+index.search.slowlog.threshold.query.info: 5s
+# index.search.slowlog.threshold.query.debug: 2s
+# index.search.slowlog.threshold.query.trace: 1s
+# index.search.slowlog.level: info

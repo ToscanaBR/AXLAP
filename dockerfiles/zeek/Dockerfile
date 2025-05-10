@@ -69,7 +69,7 @@ RUN sed -i "s|^LogDir.*|LogDir = /usr/local/zeek/logs|" /usr/local/zeek/etc/zeek
     # Here, we assume local.zeek handles these definitions.
     # Add mail_dest to avoid zeekctl warnings, even if not sending mail
     && echo "MailTo = root@localhost" >> /usr/local/zeek/etc/zeekctl.cfg \
-    && echo "LogRotationInterval = 3600" >> /usr/local/zeek/etc/zeekctl.cfg \
+    && echo "LogRotationInterval = 3600" >> /usr/local/zeek/etc/zeekctl.cfg \ 
     && echo "JsonLog::enable = T" >> /usr/local/zeek/etc/zeekctl.cfg # For zkg packages using JsonLog module \
     && echo "LocalSite::local_nets += { ${LOCAL_NETS_FROM_ENV:-192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12} }" >> /usr/local/zeek/share/zeek/site/local.zeek
     # The line above for LocalSite::local_nets is an example; networks.cfg is primary.
@@ -84,7 +84,7 @@ echo "ZEEK_INTERFACE: \${ZEEK_INTERFACE}"
 echo "Configuring Zeek interface in node.cfg..."
 sed -i "s|interface=.*|interface=\${ZEEK_INTERFACE}|" /usr/local/zeek/etc/node.cfg
 
-# Ensure site/local.zeek is present from volume mount
+# Ensure site/local.zeek is present from volume mount, otherwise create a basic one
 if [ ! -f "/usr/local/zeek/share/zeek/site/local.zeek" ]; then
     echo "Error: /usr/local/zeek/share/zeek/site/local.zeek not found. Mount config/zeek to this location."
     exit 1
@@ -95,12 +95,15 @@ if [ ! -d "/opt/axlap/zeek_plugins" ]; then
 fi
 
 # Ensure log directory exists and has correct permissions for zeek user
-mkdir -p /var/log/zeek_json
-chown -R zeek:zeek /var/log/zeek_json || true # zeek user might not exist if running as root
+if getent passwd zeek > /dev/null 2>&1; then
+    mkdir -p /var/log/zeek_json
+    chown -R zeek:zeek /var/log/zeek_json
+else
+    echo "Warning: 'zeek' user not found. Ensure correct permissions for log directory if needed."
+fi
 
 # Check zeekctl config and install if needed
-echo "Running zeekctl install..."
-/usr/local/zeek/bin/zeekctl install || echo "Zeekctl install may have non-fatal errors, continuing..."
+echo "Running zeekctl install..." && /usr/local/zeek/bin/zeekctl install || echo "Zeekctl install may have non-fatal errors, continuing..."
 
 # Deploy Zeek using zeekctl
 echo "Deploying Zeek..."

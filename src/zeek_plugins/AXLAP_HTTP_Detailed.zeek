@@ -40,8 +40,8 @@
             response_headers: vector of string &log &optional;
 
             # Potential future additions
-            # request_body_md5: string &log &optional;
-            # response_body_md5: string &log &optional;
+            request_body_md5: string &log &optional;
+            response_body_md5: string &log &optional;
         } &log;
     }
 
@@ -94,6 +94,14 @@
             info$response_headers = vector();
             for (name, value in c$http$response_headers)
                 info$response_headers[|info$response_headers|] = format_header(name, value);
+        }
+
+        # Calculate and log MD5 hashes of request and response bodies (if available)
+        if ( c$http?$orig && c$http$orig?$body ) {
+            info$request_body_md5 = md5(c$http$orig$body);
+        }
+        if ( c$http?$resp && c$http$resp?$body ) {
+            info$response_body_md5 = md5(c$http$resp$body);
         }
         
         Log::write(AXLAP_HTTP::LOG_HTTP_DETAILED, info);

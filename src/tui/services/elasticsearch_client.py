@@ -14,7 +14,7 @@ class AXLAPElasticsearchClient:
             # For TUI, it's better to let it be handled and shown in status.
             self.es = None 
             print(f"Error connecting to ES: {e}") # For console log during TUI startup
-            raise ConnectionError(f"ES Init Failed: {e}")
+            # raise ConnectionError(f"ES Init Failed: {e}") # Let TUI handle this
 
 
     def search(self, index_pattern, query_body, size=10, sort=None):
@@ -46,9 +46,14 @@ class AXLAPElasticsearchClient:
         }
         return self.es.count(**count_params)
 
-    def get_document(self, index, doc_id):
-        if not self.es: return None
+    def get_document(self, index, doc_id, ignore_errors=True):
+        if not self.es:
+            return None
         try:
             return self.es.get(index=index, id=doc_id)
-        except Exception: # Handle NotFoundError specifically if needed
+        except Exception as e:  # Catch all exceptions for now, including NotFoundError
+            if not ignore_errors:
+                raise  # Re-raise the exception if we're not ignoring errors
+            else:
+                print(f"Error getting document {doc_id} from index {index}: {e}")
             return None

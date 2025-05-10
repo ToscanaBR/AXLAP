@@ -9,7 +9,7 @@ AXLAP is a self-contained Linux-native application designed to replicate XKeysco
 
 ## Features
 
-1.  **Full Session Capture:** Powered by Arkime and Zeek for comprehensive network traffic recording and retrieval.
+1.  **Full Session Capture:** Arkime captures full packet data (PCAP), indexed and browsable by session. Zeek provides complementary session metadata.
 2.  **Metadata Retention & Query:** Zeek logs are stored in Elasticsearch, allowing rich metadata querying.
 3.  **Protocol Fingerprinting:** Suricata and Zeek work in tandem to identify and classify network protocols.
 4.  **Plugin-Based Parsing:** Extend parsing capabilities with custom Zeek scripts, manageable via the AXLAP interface.
@@ -23,7 +23,7 @@ AXLAP utilizes a containerized microservice architecture orchestrated by Docker 
 
 *   **Capture Layer:**
     *   **Zeek:** Network sensor providing deep packet inspection, protocol analysis, and rich metadata logs (JSON).
-    *   **Suricata:** Intrusion Detection System (IDS) for signature-based threat detection and protocol identification. Generates EVE JSON alerts.
+    *   **Suricata:** Intrusion Detection System (IDS) for signature-based threat detection, protocol identification, and rule-based alerting. Generates EVE JSON alerts.
     *   **Arkime (Capture & Viewer):** Provides full packet capture storage and a session-based browser. PCAPs are stored locally.
 *   **Data Transport:**
     *   **Filebeat:** Ships logs from Zeek and Suricata to Elasticsearch.
@@ -36,7 +36,7 @@ AXLAP utilizes a containerized microservice architecture orchestrated by Docker 
     *   **MISP (via OpenCTI Connector):** Facilitates sharing and consumption of threat indicators. (AXLAP does not install MISP itself, but provides the OpenCTI connector for it).
 *   **Presentation Layer:**
     *   **AXLAP TUI (Text User Interface):** A single, curses-based interface providing access to all AXLAP capabilities. Runs on the host system.
-
+    *   **Web Interfaces:** Arkime and OpenCTI also have web interfaces for more detailed analysis and management.
 ## System Requirements
 
 *   **Target OS:** Ubuntu 20.04/22.04 LTS (recommended). BackBox Linux may also work but is less tested.
@@ -100,7 +100,7 @@ You can also use the helper scripts in `/opt/axlap/scripts/`:
 
 ### Accessing the AXLAP TUI
 
-The main interface to AXLAP is the Text User Interface (TUI).
+The primary interface to AXLAP is the Text User Interface (TUI).
 
 1.  **Activate Python Virtual Environment (optional but recommended for direct script execution):**
     ```bash

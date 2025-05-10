@@ -29,5 +29,5 @@ FROM ubuntu:22.04
     # Example: /opt/arkime/bin/arkime_capture -c /opt/arkime/etc/config.ini --dir /data/pcap
     # If live capture:
     # CMD ["/opt/arkime/bin/arkime_capture", "-c", "/opt/arkime/etc/config.ini"]
-    # For this project, the command is specified in docker-compose.yml.
-    ENTRYPOINT ["/opt/arkime/bin/arkime_capture"]
+    # For this project, the command is specified in docker-compose.yml, so we don't need an ENTRYPOINT.
+    # ENTRYPOINT ["/opt/arkime/bin/arkime_capture"]

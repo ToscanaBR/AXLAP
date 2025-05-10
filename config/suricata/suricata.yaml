@@ -11,7 +11,7 @@ HOME_NET: "${HOME_NETS_CONFIG_SURICATA}" # Example, will be dynamic
 default-rule-path: /etc/suricata/rules/
 rule-files:
   - suricata.rules # This is usually the combined rules file from suricata-update
-  - local.rules    # For AXLAP custom rules
+  - local.rules    # For AXLAP custom rules, consider more specific path like /etc/suricata/rules/local.rules
 
 # Output configuration
 outputs:

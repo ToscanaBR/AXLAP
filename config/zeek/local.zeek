@@ -31,5 +31,9 @@ redef Intel::read_files += {"/opt/axlap/threat_intel/ips.dat", "/opt/axlap/threa
 
 event zeek_init() &priority=5
 {
-    print "AXLAP Zeek configuration loaded.";
+    print "AXLAP Zeek configuration loaded. Interface: ", get_interface_name();
+}
+
+function get_interface_name(): string {
+    return run_func::get_interface_name();
 }

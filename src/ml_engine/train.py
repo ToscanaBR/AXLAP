@@ -21,7 +21,7 @@ def fetch_data_from_es(es_client, days_ago=7, max_samples=100000):
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days_ago)
 
-        query = {
+        query = { # Consider using a more specific index pattern if possible
             "query": {
                 "bool": {
                     "must": [
@@ -47,7 +47,7 @@ def fetch_data_from_es(es_client, days_ago=7, max_samples=100000):
         
         # Search across relevant Zeek indices
         # Assuming indices like "axlap-zeek-YYYY.MM.DD"
-        # Construct index pattern for the last N days or use a wildcard
+        # Construct index pattern for the last N days or use a wildcard (less efficient for large datasets)
         index_pattern = "axlap-zeek-*" # General pattern
 
         try:
@@ -59,7 +59,7 @@ def fetch_data_from_es(es_client, days_ago=7, max_samples=100000):
             all_docs.extend(hits)
 
             while len(hits) > 0 and len(all_docs) < max_samples:
-                res = es_client.scroll(scroll_id=scroll_id, scroll='2m')
+                res = es_client.scroll(scroll_id=scroll_id, scroll='2m') # Adjust scroll timeout if needed
                 hits = res['hits']['hits']
                 all_docs.extend(hits)
                 if len(all_docs) >= max_samples:
@@ -68,7 +68,7 @@ def fetch_data_from_es(es_client, days_ago=7, max_samples=100000):
             
             es_client.clear_scroll(scroll_id=scroll_id)
             
-            print(f"Fetched {len(all_docs)} documents.")
+            print(f"Fetched {len(all_docs)} documents.") # Log the number of fetched documents
             return [doc['_source'] for doc in all_docs] # Return list of source documents
         except Exception as e:
             print(f"Error fetching data from Elasticsearch: {e}")
@@ -123,4 +123,4 @@ def main():
         print(f"Scaler saved to {SCALER_PATH}")
 
 if __name__ == "__main__":
-        main()
+    main()
